@@ -8,7 +8,7 @@ fclose(f);
 h = s(1);
 w = s(2);
 
-f = fopen('i.bin', 'r');
+f = fopen('zi.bin', 'r');
 i = fread(f, 'uint32') + 1;
 fclose(f);
 
