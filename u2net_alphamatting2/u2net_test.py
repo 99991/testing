@@ -57,28 +57,9 @@ def save_output(image_name,pred,d_dir):
 def main():
 
     # --------- 1. get image path and name ---------
-    model_name='u2net'#u2netp
+    model_name='u2net'
 
-
-
-    image_dir = os.path.join(os.getcwd(), 'test_data', 'test_images')
-    prediction_dir = os.path.join(os.getcwd(), 'test_data', model_name + '_results' + os.sep)
-    model_dir = os.path.join(os.getcwd(), 'saved_models', model_name, model_name + '.pth')
-
-    img_name_list = glob.glob(image_dir + os.sep + '*')
-    print(img_name_list)
-
-    # --------- 2. dataloader ---------
-    #1. dataloader
-    test_salobj_dataset = SalObjDataset(img_name_list = img_name_list,
-                                        lbl_name_list = [],
-                                        transform=transforms.Compose([RescaleT(320),
-                                                                      ToTensorLab(flag=0)])
-                                        )
-    test_salobj_dataloader = DataLoader(test_salobj_dataset,
-                                        batch_size=1,
-                                        shuffle=False,
-                                        num_workers=1)
+    model_dir = os.path.join(os.path.expanduser('~/data'), model_name, model_name + '.pth')
 
     # --------- 3. model define ---------
     if(model_name=='u2net'):
@@ -94,20 +75,14 @@ def main():
     net.eval()
 
     # --------- 4. inference for each image ---------
-    #for i_test, data_test in enumerate(test_salobj_dataloader):
-    input_paths = ["test_data/test_images/horse.jpg"]
     input_paths = ["Girl_in_front_of_a_green_background.jpg"]
 
     for path in input_paths:
-
-        #print("inferencing:",img_name_list[i_test].split(os.sep)[-1])
-
-        #inputs_test = data_test['image']
-
         image = Image.open(path).convert("RGB")
 
         width, height = image.size
 
+        # resize to prevent out of memory error
         scale = 500.0 / max(width, height)
 
         width = int(scale * width)
@@ -149,11 +124,11 @@ def main():
 
         trimap = 0.5 * (np.ones_like(pred) + is_foreground - is_background)
 
-        from pymatting import estimate_alpha_cf, estimate_foreground_ml, stack_images, save_image, estimate_alpha_lkm
+        from pymatting import estimate_foreground_ml, stack_images, save_image, estimate_alpha_lkm
 
         print("alpha matting")
 
-        alpha = estimate_alpha_lkm(image0, trimap, laplacian_kwargs=dict(radius=20))
+        alpha = estimate_alpha_lkm(image0, trimap, laplacian_kwargs=dict(radius=10))
 
         print("foreground estimation")
 
